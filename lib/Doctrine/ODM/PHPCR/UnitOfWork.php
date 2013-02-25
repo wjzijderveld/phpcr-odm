@@ -951,10 +951,12 @@ class UnitOfWork
 
         foreach ($class->childMappings as $fieldName) {
             if ($actualData[$fieldName]) {
-                if ($this->originalData[$oid][$fieldName] && $this->originalData[$oid][$fieldName] !== $actualData[$fieldName]) {
-                    throw PHPCRException::cannotMoveByAssignment(self::objToStr($actualData[$fieldName], $this->dm));
-                }
                 $mapping = $class->mappings[$fieldName];
+                if ($this->originalData[$oid][$fieldName] && $this->originalData[$oid][$fieldName] !== $actualData[$fieldName]) {
+                    $this->unregisterDocument($this->originalData[$oid][$fieldName]);
+                    $this->session->removeItem($id.'/'.$mapping['name']);
+                }
+
                 $this->computeChildChanges($mapping, $actualData[$fieldName], $id);
             }
         }
@@ -1921,15 +1923,11 @@ class UnitOfWork
                         }
                     }
                 } elseif ('child' === $mapping['type']) {
-                    if ($fieldValue === null) {
-                        if ($node->hasNode($mapping['name'])) {
-                            $child = $node->getNode($mapping['name']);
-                            $childDocument = $this->getOrCreateDocument(null, $child);
-                            $this->purgeChildren($childDocument);
-                            $child->remove();
-                        }
-                    } elseif ($this->originalData[$oid][$fieldName] && $this->originalData[$oid][$fieldName] !== $fieldValue) {
-                        throw PHPCRException::cannotMoveByAssignment(self::objToStr($fieldValue, $this->dm));
+                    if ($fieldValue === null && $node->hasNode($mapping['name'])) {
+                        $child = $node->getNode($mapping['name']);
+                        $childDocument = $this->getOrCreateDocument(null, $child);
+                        $this->purgeChildren($childDocument);
+                        $child->remove();
                     }
                 }
             }

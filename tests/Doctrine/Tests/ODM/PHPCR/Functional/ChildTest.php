@@ -225,7 +225,6 @@ class ChildTest extends \Doctrine\Tests\ODM\PHPCR\PHPCRFunctionalTestCase
         $this->assertNull($parent->child);
     }
 
-    /* this fails as the newChild is not persisted */
     public function testChildReplace()
     {
         $parent = new ChildTestObj();
@@ -243,8 +242,6 @@ class ChildTest extends \Doctrine\Tests\ODM\PHPCR\PHPCRFunctionalTestCase
         $newChild = new ChildChildTestObj();
         $newChild->name = 'new name';
         $parent->child = $newChild;
-
-        $this->setExpectedException('Doctrine\ODM\PHPCR\PHPCRException');
 
         $this->dm->flush();
     }
